@@ -17,7 +17,12 @@ const Dojo = sql.define('Dojo', {
       },
       len: {
         args: [2],    // algunas validaciones necesitan argumentos
-        msg: "nombre must be at least 2 characters long"
+        msg: "nombre debe tener al menos 2 caracteres de LARGO. Como Minimo."
+      },
+      isEven(value) {
+        if (value == "") {
+          throw new Error('No puede ser vacio!');
+        }
       }
     }
   }

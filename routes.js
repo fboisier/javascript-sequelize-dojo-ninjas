@@ -1,39 +1,49 @@
 const { Router } = require('express');
 const { Dojo, Ninja } = require('./db');
+const { ValidationError } = require('sequelize');
 const router = Router();
 
-router.get("/", async (req,res)=>{
+router.get("/", async (req, res) => {
 
-  const dojos = await Dojo.findAll({ include:  [Ninja] });
+  const dojos = await Dojo.findAll({ include: [Ninja] });
 
-  console.log(dojos);
+  let errores  = req.flash("error");
 
-  res.render("index", { dojos });
+  res.render("index", { dojos, errores });
 
 });
 
-router.post("/dojo/new", async (req,res)=>{
+router.post("/dojo/new", async (req, res) => {
 
-  const dojo = await Dojo.create(req.body);
+try{
+    const dojo = await Dojo.create(req.body);
 
-  console.log(dojo);
+    console.log(dojo);
+}
+catch(err){
+
+  console.log(err.message);
+  req.flash("error", err.message);
+
+}
 
   res.redirect("/");
 });
 
 
-router.post("/ninja/new", async (req,res)=>{
+router.post("/ninja/new", async (req, res) => {
 
-  // buscar el dojo que se recibe.
-  const dojo = await Dojo.findByPk(req.body.dojo);
-
-  await dojo.createNinja({ nombre: req.body.nombre });
-
-  // agregar el ninja
-  //const ninja = Ninja.create({ nombre: req.body.nombre, DojoId: req.body.dojo  });
-
-  // agregar la relacion. ninja pertenece al dojo.
-  // await ninja.setDojo(dojo);
+  try {
+        if(req.body.dojo == "")
+          throw new Error("El dojo no debe venir vacio. Se debe seleccionar al menos 1.");
+    
+        const dojo = await Dojo.findByPk(req.body.dojo);
+        await dojo.createNinja({ nombre: req.body.nombre });
+    
+  } catch (err) {
+    console.log(err.message);
+    req.flash("error", err.message);
+  }
 
   res.redirect("/");
 });
